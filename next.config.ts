@@ -84,6 +84,19 @@ const nextConfig: NextConfig = {
         { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
       ],
     },
+    // #585 — static assets (JS/CSS/images) get long-lived immutable caching
+    {
+      source: "/_next/static/:path*",
+      headers: [
+        { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+      ],
+    },
+    {
+      source: "/:path*\\.(png|jpg|jpeg|gif|svg|webp|avif|ico|woff|woff2|ttf|eot)",
+      headers: [
+        { key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" },
+      ],
+    },
   ],
 };
 
