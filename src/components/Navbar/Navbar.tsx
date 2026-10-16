@@ -31,6 +31,17 @@ const MORE_LINKS = [
   { href: "/alerts", label: "Alerts" },
 ];
 
+/**
+ * Whether `href` is the current section (#547). Home matches only "/"; other
+ * links also match nested routes ("/airdrops/123") and a trailing slash.
+ */
+export function isActiveRoute(pathname: string | null, href: string): boolean {
+  if (!pathname) return false;
+  const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  if (href === "/") return path === "/";
+  return path === href || path.startsWith(`${href}/`);
+}
+
 function shortenStellarAddress(address: string) {
   if (!address || address.length < 12) {
     return address;
@@ -69,11 +80,12 @@ function NavLink({
   onClick?: () => void;
 }) {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const isActive = isActiveRoute(pathname, href);
   return (
     <NextLink
       href={href}
       onClick={onClick}
+      aria-current={isActive ? "page" : undefined}
       className={`text-sm transition-colors hover:text-[color:var(--chakra-colors-app-accent)] ${
         isActive
           ? "font-semibold text-[color:var(--chakra-colors-app-accent)]"
@@ -87,7 +99,7 @@ function NavLink({
 
 function MoreMenu() {
   const pathname = usePathname();
-  const isActive = MORE_LINKS.some((link) => link.href === pathname);
+  const isActive = MORE_LINKS.some((link) => isActiveRoute(pathname, link.href));
   return (
     <Menu>
       <MenuButton
@@ -107,7 +119,9 @@ function MoreMenu() {
             as={NextLink}
             href={link.href}
             bg="app.surface"
-            color={pathname === link.href ? "app.accent" : "app.text"}
+            aria-current={isActiveRoute(pathname, link.href) ? "page" : undefined}
+            fontWeight={isActiveRoute(pathname, link.href) ? "semibold" : "normal"}
+            color={isActiveRoute(pathname, link.href) ? "app.accent" : "app.text"}
             _hover={{ bg: "app.surfaceHover" }}
           >
             {link.label}
