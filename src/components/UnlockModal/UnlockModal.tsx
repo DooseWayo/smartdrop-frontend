@@ -288,7 +288,14 @@ export default function UnlockModal() {
   );
 
   return (
-    <Modal isOpen={isUnlock} onClose={handleClose}>
+    // Escape and overlay click close the modal, except mid-transaction where
+    // closing would orphan an in-flight unlock (#516).
+    <Modal
+      isOpen={isUnlock}
+      onClose={handleClose}
+      closeOnEsc={!isProcessing}
+      closeOnOverlayClick={!isProcessing}
+    >
       <ModalOverlay backdropFilter="blur(3px)" />
       <ModalContent
         bg="app.surface"
