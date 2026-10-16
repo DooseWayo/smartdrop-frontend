@@ -7,7 +7,18 @@ import { ColorModeScript } from "@chakra-ui/react";
 import { CSP_POLICY } from "../../next.config";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], display: "swap" });
+// #555: preload the self-hosted Inter subset and expose it as --font-inter so
+// the Chakra theme (src/lib/theme.ts) uses this exact preloaded face.
+// adjustFontFallback sizes the system fallback to Inter's metrics, so the
+// swap from fallback to Inter causes no layout shift.
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  variable: "--font-inter",
+  adjustFontFallback: true,
+  fallback: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+});
 
 const SITE_NAME = "SmartDrop";
 const SITE_TITLE = "SmartDrop — Stellar Liquidity Farming";
@@ -51,7 +62,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" className={inter.className} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${inter.className}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://horizon.stellar.org" />
         <link rel="dns-prefetch" href="https://soroban-testnet.stellar.org" />
