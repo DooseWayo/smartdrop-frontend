@@ -7,7 +7,7 @@ import NetworkMismatchBanner from "@/components/NetworkMismatchBanner/NetworkMis
 import OfflineBanner from "@/components/OfflineBanner/OfflineBanner";
 import RefetchIndicator from "@/components/RefetchIndicator/RefetchIndicator";
 import RpcUnreachableBanner from "@/components/RpcUnreachableBanner/RpcUnreachableBanner";
-import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar/ServiceWorkerRegistrar";
+import SkipLink, { MAIN_CONTENT_ID } from "@/components/SkipLink/SkipLink";
 import ContextProvider from "@/context";
 import {
   OwnConnectButtonProvider,
@@ -49,12 +49,21 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
         md: 0,
       }}
     >
+      <SkipLink />
       <RefetchIndicator />
       <Navbar />
       <OfflineBanner />
       <RpcUnreachableBanner />
       <NetworkMismatchBanner />
-      <Box as="main" flex={1}>
+      {/* Skip-link target (#575): tabIndex -1 makes it programmatically
+          focusable without adding it to the tab order. */}
+      <Box
+        as="main"
+        id={MAIN_CONTENT_ID}
+        tabIndex={-1}
+        flex={1}
+        _focus={{ outline: "none" }}
+      >
         {children}
       </Box>
       <Footer />

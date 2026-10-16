@@ -2194,8 +2194,10 @@ export const unlockAssets = async ({
   }, isStillConnected, stroops);
 };
 
+// Both segments come from RPC/Horizon responses; encode them so a malformed
+// value can't add path segments or a query to the explorer URL (#527).
 export const stellarExpertTxUrl = (hash: string, network: string) =>
-  `https://stellar.expert/explorer/${network}/tx/${hash}`;
+  `https://stellar.expert/explorer/${encodeURIComponent(network)}/tx/${encodeURIComponent(hash)}`;
 
 /**
  * Compute live-preview values for a partial unlock.

@@ -41,6 +41,9 @@ const StellarWalletContext = createContext<StellarWalletContextValue | null>(
 
 export const FREIGHTER_CONNECT_TIMEOUT_MS = 15_000;
 
+/** How often Freighter is polled for external wallet changes (#539). */
+export const WALLET_WATCH_INTERVAL_MS = 3_000;
+
 function normalizeNetworkName(value: string | null | undefined) {
   const normalized = value?.trim().toUpperCase();
   if (!normalized) return null;
@@ -87,6 +90,9 @@ async function withFreighterConnectTimeout<T>(
     if (timer) clearTimeout(timer);
   }
 }
+
+/** How often to re-read Freighter's network while it is mismatched (#512). */
+export const NETWORK_MISMATCH_POLL_MS = 3_000;
 
 export function StellarWalletProvider({ children }: { children: ReactNode }) {
   const [publicKey, setPublicKey] = useState<string | null>(null);
@@ -330,9 +336,79 @@ export function StellarWalletProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- see the health-check effect above for why disconnectUnexpectedly is intentionally omitted.
   }, [publicKey, refreshNetworkDetails, disconnect]);
 
+  // Live wallet-change watcher (#539). The health check and visibilitychange
+  // listener above only notice external changes lazily (up to 30s, or on the
+  // next tab switch) and never when the Freighter popup is used while this
+  // tab stays visible (#140). Freighter's WatchWalletChanges polls the
+  // extension and reports lock / revoked site access (empty address), account
+  // switches and network switches, so the UI updates within seconds.
+  useEffect(() => {
+    if (!publicKey) return undefined;
+
+    let cancelled = false;
+    let watcher: { stop(): void } | null = null;
+
+    void (async () => {
+      try {
+        const freighter = await import("@stellar/freighter-api");
+        if (cancelled || typeof freighter.WatchWalletChanges !== "function") return;
+
+        const w = new freighter.WatchWalletChanges(WALLET_WATCH_INTERVAL_MS);
+        watcher = w;
+        w.watch(({ address, network, error }) => {
+          // A failed read is not proof of disconnect; the health check above
+          // handles a genuinely unreachable extension.
+          if (error) return;
+          if (!address) {
+            disconnectUnexpectedly();
+            return;
+          }
+          if (address !== publicKey) setPublicKey(address);
+          if (network && network !== networkName) {
+            void refreshNetworkDetails(
+              undefined,
+              Date.now() + FREIGHTER_CONNECT_TIMEOUT_MS,
+            ).catch(() => {});
+          }
+        });
+      } catch {
+        // Watcher unavailable — the interval/visibility checks still apply.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      watcher?.stop();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see the health-check effect above for why disconnectUnexpectedly is intentionally omitted.
+  }, [publicKey, networkName, refreshNetworkDetails, disconnect]);
+
   const isNetworkMismatch = Boolean(
     networkName && networkName !== stellarNetwork,
   );
+
+  // Switching networks inside the Freighter popup fires no page event —
+  // the tab never goes hidden, so the visibilitychange refresh above doesn't
+  // run and the mismatch banner stayed up until a reload (#512). While the
+  // network is mismatched, poll Freighter and re-check on window focus so the
+  // banner clears as soon as the user switches.
+  useEffect(() => {
+    if (!publicKey || !isNetworkMismatch) return undefined;
+
+    const recheck = () => {
+      void refreshNetworkDetails(
+        undefined,
+        Date.now() + FREIGHTER_CONNECT_TIMEOUT_MS,
+      ).catch(() => {});
+    };
+
+    const timer = window.setInterval(recheck, NETWORK_MISMATCH_POLL_MS);
+    window.addEventListener("focus", recheck);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", recheck);
+    };
+  }, [publicKey, isNetworkMismatch, refreshNetworkDetails]);
 
   const value = useMemo(
     () => ({
