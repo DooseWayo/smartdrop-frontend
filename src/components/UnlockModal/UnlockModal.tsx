@@ -400,35 +400,47 @@ export default function UnlockModal() {
                     _hover={{ borderColor: "app.accent" }}
                     _focus={{ boxShadow: "none", borderColor: "app.accent" }}
                   />
+                  {/* Tab order (#591): these controls sit visually on the right of
+                      the amount field and come right after it in the DOM, so Tab
+                      walks input → 50% → Max → actions. Real buttons (not click
+                      handlers on Text) so keyboard users can actually reach them. */}
                   <Flex
                     position="absolute"
                     top="50%"
                     right="12px"
                     transform="translateY(-50%)"
-                    gap={3}
+                    gap={2}
                     align="center"
                   >
                     <Text fontSize="sm">{position.symbol}</Text>
-                    <Text
-                      fontSize="xs"
+                    <Button
+                      type="button"
+                      size="xs"
+                      variant="ghost"
                       color="app.accent"
-                      cursor={canUnlock ? "pointer" : "not-allowed"}
-                      onClick={canUnlock ? set50Pct : undefined}
-                      _hover={canUnlock ? { opacity: 0.8 } : {}}
-                      transition="opacity 0.2s"
+                      minW="auto"
+                      h="auto"
+                      px={1}
+                      fontSize="xs"
+                      isDisabled={!canUnlock || isProcessing}
+                      onClick={set50Pct}
                     >
                       50%
-                    </Text>
-                    <Text
-                      fontSize="xs"
+                    </Button>
+                    <Button
+                      type="button"
+                      size="xs"
+                      variant="ghost"
                       color="app.accent"
-                      cursor={canUnlock ? "pointer" : "not-allowed"}
-                      onClick={canUnlock ? setMax : undefined}
-                      _hover={canUnlock ? { opacity: 0.8 } : {}}
-                      transition="opacity 0.2s"
+                      minW="auto"
+                      h="auto"
+                      px={1}
+                      fontSize="xs"
+                      isDisabled={!canUnlock || isProcessing}
+                      onClick={setMax}
                     >
                       Max
-                    </Text>
+                    </Button>
                   </Flex>
                 </Box>
               </Flex>

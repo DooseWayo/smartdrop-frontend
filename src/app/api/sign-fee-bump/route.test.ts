@@ -66,4 +66,38 @@ describe("POST /api/sign-fee-bump", () => {
     expect(response.status).toBe(400);
     expect(body.error).toBe("Missing innerTxXdr in request body");
   });
+
+  it("does not leak XDR parser internals on invalid XDR (#594)", async () => {
+    const { TransactionBuilder } = await import("@stellar/stellar-sdk");
+    (TransactionBuilder.fromXDR as unknown as ReturnType<typeof vi.fn>).mockImplementationOnce(
+      () => {
+        throw new Error("XDR decode overflow at offset 42 secret=SSPONSOR");
+      },
+    );
+
+    const response = await POST(makeRequest({ innerTxXdr: "AAAA" }));
+    const body = (await response.json()) as { error: string };
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Invalid inner transaction XDR");
+    expect(body.error).not.toContain("offset 42");
+    expect(body.error).not.toContain("SSPONSOR");
+  });
+
+  it("does not echo internal sponsorship policy messages (#594)", async () => {
+    const { assertSponsorableInnerTransaction } = await import("@/lib/feeBumpGuard");
+    (assertSponsorableInnerTransaction as unknown as ReturnType<typeof vi.fn>).mockImplementationOnce(
+      () => {
+        throw new Error("opcode lock_assets not in allowlist for pool factory contract ABC");
+      },
+    );
+
+    const response = await POST(makeRequest({ innerTxXdr: "AAAA" }));
+    const body = (await response.json()) as { error: string };
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Transaction is not eligible for fee sponsorship");
+    expect(body.error).not.toContain("allowlist");
+    expect(body.error).not.toContain("pool factory");
+  });
 });

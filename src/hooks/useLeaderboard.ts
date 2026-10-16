@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useUrlPagination } from "./useUrlPagination";
 
 export type SortKey = "credits" | "stake";
 
@@ -33,7 +34,8 @@ export function useLeaderboard(publicKey: string | null) {
   const [sortKey, setSortKeyState] = useState<SortKey>("credits");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [page, setPageState] = useState(1);
+  // URL-backed so leaderboard pages are shareable and back/forward work (#593).
+  const { page, setPage: setPageState } = useUrlPagination();
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 
   useEffect(() => {

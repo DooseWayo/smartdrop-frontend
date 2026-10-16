@@ -2,6 +2,13 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@/test/renderHook";
 import type { SortKey, LeaderboardEntry } from "./useLeaderboard";
 
+// useLeaderboard now syncs page to the URL (#593); keep unit tests offline.
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  usePathname: () => "/leaderboard",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 // Manually resolvable promises for controlling resolution order
 function createDeferred<T>() {
   let resolve!: (value: T) => void;

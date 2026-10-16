@@ -28,6 +28,7 @@ import { useStellarWallet } from "@/context/StellarWalletContext";
 import ConnectWalletButton from "@/components/ConnectWalletButton/ConnectWalletButton";
 import LiveRegion from "@/components/LiveRegion/LiveRegion";
 import { useLiveAnnouncer } from "@/hooks/useLiveAnnouncer";
+import { useUrlPagination } from "@/hooks/useUrlPagination";
 import {
   getUserTransactionHistory,
   stellarExpertTxUrl,
@@ -151,7 +152,8 @@ export default function HistoryPage() {
   const [entries, setEntries] = useState<TxHistoryEntry[]>([]);
   const [truncated, setTruncated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [page, setPage] = useState(1);
+  // Page lives in the URL so history pages can be shared (#593).
+  const { page, setPage } = useUrlPagination();
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
