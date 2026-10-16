@@ -23,7 +23,8 @@ const theme = extendTheme({
       "app.borderHover": { default: "#0f7a4e", _dark: "#4ae292" },
       // Accent — #0f7a4e passes 4.5:1 on white; #4ae292 is the dark-mode green
       "app.accent":    { default: "#0f7a4e",  _dark: "#4ae292" },
-      "app.accent2":   { default: "#2563eb",  _dark: "#6dd5ff" },
+      // #1d4ed8 (was #2563eb, 4.45:1 on surfaceHover) passes 5.8:1 on every light surface (#543)
+      "app.accent2":   { default: "#1d4ed8",  _dark: "#6dd5ff" },
       // Extended palette for richer, multi-hue surfaces (landing page bento
       // grid, ambient background). #7c3aed passes 5.7:1 on white, #c4b5fd
       // passes 10.5:1 on the dark bg.
@@ -32,7 +33,8 @@ const theme = extendTheme({
       "app.accent4":   { default: "#be185d",  _dark: "#f9a8d4" },
       // Text
       "app.text":      { default: "#171717",  _dark: "#ffffff" },
-      "app.muted":     { default: "#6b7280",  _dark: "#9a9a9a" },
+      // #5b6270 (was #6b7280, 4.17:1 on surfaceHover) passes 5.3:1 on every light surface (#543)
+      "app.muted":     { default: "#5b6270",  _dark: "#9a9a9a" },
       "app.onAccent":  { default: "#ffffff",  _dark: "#000000" },
       // Tooltip
       "app.tooltipBg": { default: "#f0f0f0",  _dark: "#222222" },
@@ -43,9 +45,10 @@ const theme = extendTheme({
       // Alerts — warning: #8a5a00 passes 4.5:1 on #fdf3e2; #f6c453 passes 4.5:1 on #2a2412
       "app.warningBg": { default: "#fdf3e2",  _dark: "#2a2412" },
       "app.warningFg": { default: "#8a5a00",  _dark: "#f6c453" },
-      // Alerts — fee-sponsored warning: #9a6b00 passes 4.5:1 on #fef3cd; #ffb86c passes 4.5:1 on #2d2216
+      // Alerts — fee-sponsored warning: #805700 passes 5.8:1 on #fef3cd (was #9a6b00 at only
+      // 4.2:1, #543); #ffb86c passes 9.1:1 on #2d2216
       "app.feeWarnBg":     { default: "#fef3cd", _dark: "#2d2216" },
-      "app.feeWarnFg":     { default: "#9a6b00", _dark: "#ffb86c" },
+      "app.feeWarnFg":     { default: "#805700", _dark: "#ffb86c" },
       "app.feeWarnBorder": { default: "#c9a84c", _dark: "#7c5c24" },
       // Overlays — modal scrim (was hardcoded blackAlpha.600)
       "app.overlay":       { default: "rgba(0, 0, 0, 0.6)", _dark: "rgba(0, 0, 0, 0.6)" },
