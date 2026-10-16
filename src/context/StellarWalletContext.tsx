@@ -88,6 +88,9 @@ async function withFreighterConnectTimeout<T>(
   }
 }
 
+/** How often to re-read Freighter's network while it is mismatched (#512). */
+export const NETWORK_MISMATCH_POLL_MS = 3_000;
+
 export function StellarWalletProvider({ children }: { children: ReactNode }) {
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [walletApi, setWalletApi] = useState<FreighterWalletApi | null>(null);
@@ -333,6 +336,29 @@ export function StellarWalletProvider({ children }: { children: ReactNode }) {
   const isNetworkMismatch = Boolean(
     networkName && networkName !== stellarNetwork,
   );
+
+  // Switching networks inside the Freighter popup fires no page event —
+  // the tab never goes hidden, so the visibilitychange refresh above doesn't
+  // run and the mismatch banner stayed up until a reload (#512). While the
+  // network is mismatched, poll Freighter and re-check on window focus so the
+  // banner clears as soon as the user switches.
+  useEffect(() => {
+    if (!publicKey || !isNetworkMismatch) return undefined;
+
+    const recheck = () => {
+      void refreshNetworkDetails(
+        undefined,
+        Date.now() + FREIGHTER_CONNECT_TIMEOUT_MS,
+      ).catch(() => {});
+    };
+
+    const timer = window.setInterval(recheck, NETWORK_MISMATCH_POLL_MS);
+    window.addEventListener("focus", recheck);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", recheck);
+    };
+  }, [publicKey, isNetworkMismatch, refreshNetworkDetails]);
 
   const value = useMemo(
     () => ({
