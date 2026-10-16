@@ -138,6 +138,7 @@ export default function BoostModal() {
         <Modal
             isOpen={isBoost}
             onClose={handleClose}
+            lockScrollAcrossViewports
             // Keep keyboard focus inside the dialog (WCAG 2.1.2 / 2.4.3), start on the
             // allocation slider, and hand focus back to the trigger when it closes.
             trapFocus

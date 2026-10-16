@@ -43,6 +43,8 @@ const CSP_POLICY = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
+  // Report CSP violations for monitoring (#589).
+  "report-uri /api/csp-report",
 ].join("; ");
 
 const nextConfig: NextConfig = {
