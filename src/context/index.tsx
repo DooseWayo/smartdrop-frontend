@@ -42,7 +42,7 @@ function ContextProvider({ children }: { children: ReactNode }) {
 
   return (
     <ChakraProvider theme={theme} colorModeManager={localStorageManager}>
-      <ErrorBoundary>
+      <ErrorBoundary captureUnhandledRejections>
         <ErrorProvider>
           <QueryClientProvider client={queryClient}>
             <StellarWalletProvider>{children}</StellarWalletProvider>
