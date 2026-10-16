@@ -102,12 +102,6 @@ export default function UnlockModal() {
       setError(null);
       setTxHash(null);
 
-      // Focus the amount input using a scoped ref instead of document.querySelector.
-      // Use a short delay to allow Chakra's Modal animation to complete.
-      setTimeout(() => {
-        amountInputRef.current?.focus();
-        amountInputRef.current?.select();
-      }, 100);
     }
   }, [isUnlock, position]);
 
@@ -288,7 +282,15 @@ export default function UnlockModal() {
   );
 
   return (
-    <Modal isOpen={isUnlock} onClose={handleClose}>
+    <Modal
+      isOpen={isUnlock}
+      onClose={handleClose}
+      // Keep keyboard focus inside the dialog (WCAG 2.1.2 / 2.4.3), start on the
+      // amount field, and hand focus back to the trigger when the dialog closes.
+      trapFocus
+      returnFocusOnClose
+      initialFocusRef={amountInputRef}
+    >
       <ModalOverlay backdropFilter="blur(3px)" />
       <ModalContent
         bg="app.surface"
@@ -380,6 +382,7 @@ export default function UnlockModal() {
                 <Box position="relative" w="100%">
                   <Input
                     ref={amountInputRef}
+                    onFocus={(e) => e.currentTarget.select()}
                     type="number"
                     borderRadius="2xl"
                     placeholder="Amount"
