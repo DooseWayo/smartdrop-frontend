@@ -28,6 +28,18 @@ const DEFAULT_TOAST_OPTIONS: ToastOptions = {
   position: "bottom-right",
 };
 
+/**
+ * Container style that ensures toasts stack vertically with spacing instead
+ * of overlapping (#596). Chakra's default toast container uses absolute
+ * positioning which can cause overlap at the same position.
+ */
+const TOAST_CONTAINER_STYLE = {
+  maxWidth: "380px",
+  gap: "8px",
+  display: "flex",
+  flexDirection: "column-reverse" as const,
+};
+
 export function useToast() {
   const chakraToast = useChakraToast();
 
@@ -48,6 +60,7 @@ export function useToast() {
         status: "success",
         ...DEFAULT_TOAST_OPTIONS,
         ...options,
+        containerStyle: TOAST_CONTAINER_STYLE,
       });
     },
     [chakraToast]
@@ -64,6 +77,7 @@ export function useToast() {
         status: "error",
         ...DEFAULT_TOAST_OPTIONS,
         ...options,
+        containerStyle: TOAST_CONTAINER_STYLE,
       });
     },
     [chakraToast]
@@ -80,6 +94,7 @@ export function useToast() {
         status: "info",
         ...DEFAULT_TOAST_OPTIONS,
         ...options,
+        containerStyle: TOAST_CONTAINER_STYLE,
       });
     },
     [chakraToast]
@@ -96,6 +111,7 @@ export function useToast() {
         status: "warning",
         ...DEFAULT_TOAST_OPTIONS,
         ...options,
+        containerStyle: TOAST_CONTAINER_STYLE,
       });
     },
     [chakraToast]
@@ -121,6 +137,7 @@ export function useToast() {
           status: "error",
           ...DEFAULT_TOAST_OPTIONS,
           duration: 8000,
+          containerStyle: TOAST_CONTAINER_STYLE,
           description: (
             <Box>
               <Text>{normalized.userMessage}</Text>
@@ -148,6 +165,7 @@ export function useToast() {
           status: "error",
           ...DEFAULT_TOAST_OPTIONS,
           duration: 6000, // Slightly longer for errors
+          containerStyle: TOAST_CONTAINER_STYLE,
         });
       }
 
@@ -187,6 +205,7 @@ export function useToast() {
             isClosable: false,
             ...DEFAULT_TOAST_OPTIONS,
             ...toastOptions,
+            containerStyle: TOAST_CONTAINER_STYLE,
           })
         : null;
 
@@ -207,6 +226,7 @@ export function useToast() {
             status: "success",
             ...DEFAULT_TOAST_OPTIONS,
             ...toastOptions,
+            containerStyle: TOAST_CONTAINER_STYLE,
           });
         }
 
