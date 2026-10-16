@@ -4,6 +4,7 @@ import {
     poolContractId,
     stellarNetwork,
 } from "@/config";
+import TransactionConfirmModal from "@/components/TransactionConfirmModal/TransactionConfirmModal";
 import { useStellarWallet } from "@/context/StellarWalletContext";
 import { useSetBoost } from "@/hooks/useSorobanQuery";
 import { trackEvent } from "@/lib/analytics";
@@ -46,6 +47,7 @@ export default function BoostModal() {
     const [allocation, setAllocation] = useState(currentBoost);
     const [step, setStep] = useState<BoostStep>("idle");
     const [error, setError] = useState<string | null>(null);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const sliderThumbRef = useRef<HTMLDivElement>(null);
 
     const selectedPoolContractId = position?.contractAddress || poolContractId;
@@ -55,6 +57,7 @@ export default function BoostModal() {
             setAllocation(position.boostAllocation ?? 0);
             setStep("idle");
             setError(null);
+            setIsConfirmOpen(false);
         }
     }, [isBoost, position]);
 
@@ -68,6 +71,11 @@ export default function BoostModal() {
     const hasStake = position.lockedAmount > 0;
     const allocationChanged = allocation !== currentBoost;
     const isProcessing = step === "submitting";
+
+    const handleConfirmBoost = () => {
+        setIsConfirmOpen(false);
+        void handleSetBoost();
+    };
 
     const handleSetBoost = async () => {
         if (!publicKey) {
@@ -263,7 +271,7 @@ export default function BoostModal() {
                                 color="app.onAccent"
                                 _hover={{ opacity: 0.9 }}
                                 isDisabled={!hasStake || !allocationChanged || isProcessing || isNetworkMismatch}
-                                onClick={() => void handleSetBoost()}
+                                onClick={() => setIsConfirmOpen(true)}
                                 w="full"
                             >
                                 {isProcessing ? (
@@ -279,6 +287,21 @@ export default function BoostModal() {
                     )}
                 </ModalBody>
             </ModalContent>
+            <TransactionConfirmModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleConfirmBoost}
+                title="Confirm Boost Change"
+                description="Review the details below. You'll be asked to sign this transaction in Freighter."
+                details={[
+                    { label: "Pool", value: position.name },
+                    { label: "Current boost", value: `${currentBoost}%` },
+                    { label: "New boost", value: `${allocation}%` },
+                    { label: "Your stake", value: `${position.stake} ${position.symbol}` },
+                ]}
+                warning="This allocation applies to all future credit emissions until you change it."
+                confirmLabel="Confirm Boost"
+            />
         </Modal>
     );
 }
