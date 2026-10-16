@@ -54,7 +54,18 @@ const nextConfig: NextConfig = {
   ...(isStaticExport ? { output: "export" } : {}),
   devIndicators: false,
   ...(basePath ? { basePath, assetPrefix: basePath } : {}),
+  // Expose basePath to the client so ServiceWorkerRegistrar registers
+  // `<basePath>/sw.js` on GitHub Pages exports (#528).
+  env: { NEXT_PUBLIC_BASE_PATH: basePath },
   headers: async () => [
+    {
+      // The service worker must never be served stale, or fixes to it would
+      // take a full HTTP-cache lifetime to reach users (#528).
+      source: "/sw.js",
+      headers: [
+        { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+      ],
+    },
     {
       source: "/icon.svg",
       headers: [

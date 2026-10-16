@@ -4,6 +4,7 @@ import ConnectWalletButton from "@/components/ConnectWalletButton/ConnectWalletB
 import Footer from "@/components/Footer/Footer";
 import Navbar from "@/components/Navbar/Navbar";
 import NetworkMismatchBanner from "@/components/NetworkMismatchBanner/NetworkMismatchBanner";
+import OfflineBanner from "@/components/OfflineBanner/OfflineBanner";
 import RefetchIndicator from "@/components/RefetchIndicator/RefetchIndicator";
 import RpcUnreachableBanner from "@/components/RpcUnreachableBanner/RpcUnreachableBanner";
 import SkipLink, { MAIN_CONTENT_ID } from "@/components/SkipLink/SkipLink";
@@ -51,6 +52,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
       <SkipLink />
       <RefetchIndicator />
       <Navbar />
+      <OfflineBanner />
       <RpcUnreachableBanner />
       <NetworkMismatchBanner />
       {/* Skip-link target (#575): tabIndex -1 makes it programmatically
@@ -73,6 +75,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
 export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <ContextProvider>
+      <ServiceWorkerRegistrar basePath={process.env.NEXT_PUBLIC_BASE_PATH ?? ""} />
       {/* OwnConnectButtonProvider must be inside ContextProvider so the
           wallet context is available to children, but it wraps LayoutWrapper
           so pages can signal upward before the floating button is rendered. */}
