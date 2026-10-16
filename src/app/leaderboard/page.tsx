@@ -237,6 +237,7 @@ export default function LeaderboardPage() {
                     <Button
                       variant="unstyled"
                       onClick={() => setSortKey("credits")}
+                      onTouchEnd={() => setSortKey("credits")}
                       display="flex"
                       alignItems="center"
                       justifyContent="flex-end"
@@ -270,6 +271,7 @@ export default function LeaderboardPage() {
                     <Button
                       variant="unstyled"
                       onClick={() => setSortKey("stake")}
+                      onTouchEnd={() => setSortKey("stake")}
                       display="flex"
                       alignItems="center"
                       justifyContent="flex-end"

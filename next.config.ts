@@ -47,6 +47,12 @@ const CSP_POLICY = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Ensure CSS minification in production (#579)
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error'],
+    } : false,
+  },
   poweredByHeader: false,
   images: {
     unoptimized: true,
