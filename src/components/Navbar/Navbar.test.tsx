@@ -245,3 +245,34 @@ describe("Navbar More menu", () => {
     }
   });
 });
+
+describe("Navbar theme toggle (#563)", () => {
+  const currentToggleLabel = () =>
+    screen.getAllByRole("button", { name: /^Switch to (light|dark) mode$/ })[0]
+      .getAttribute("aria-label");
+
+  it("renders a theme toggle that names the mode it switches to", () => {
+    renderNavbar();
+    expect(currentToggleLabel()).toMatch(/^Switch to (light|dark) mode$/);
+  });
+
+  it("clicking the toggle flips the mode and its label", async () => {
+    renderNavbar();
+    const before = currentToggleLabel();
+    fireEvent.click(screen.getAllByRole("button", { name: before! })[0]);
+    await waitFor(() => expect(currentToggleLabel()).not.toBe(before));
+  });
+
+  it("Ctrl+Shift+D flips the mode exactly once with both navbar toggles mounted", async () => {
+    renderNavbar();
+    // Mobile + desktop toggles are both in the DOM.
+    expect(
+      screen.getAllByRole("button", { name: /^Switch to (light|dark) mode$/ }),
+    ).toHaveLength(2);
+    const before = currentToggleLabel();
+
+    fireEvent.keyDown(window, { code: "KeyD", ctrlKey: true, shiftKey: true });
+
+    await waitFor(() => expect(currentToggleLabel()).not.toBe(before));
+  });
+});

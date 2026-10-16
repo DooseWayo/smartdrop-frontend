@@ -41,9 +41,14 @@ export default function ThemeToggle() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [toggleColorMode]);
 
+  // Name the action, not the control, so screen readers announce what a
+  // click will do (#563).
+  const label = `Switch to ${isDark ? "light" : "dark"} mode`;
+
   return (
     <IconButton
-      aria-label="Toggle colour mode"
+      aria-label={label}
+      title={`${label} (Ctrl/⌘ + Shift + D)`}
       icon={<SunMoonIcon isDark={isDark} />}
       onClick={toggleColorMode}
       variant="ghost"
