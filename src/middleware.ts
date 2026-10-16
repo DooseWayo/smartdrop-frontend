@@ -33,6 +33,9 @@ function buildCsp(nonce: string): string {
     "img-src 'self' data: https:",
     "font-src 'self'",
     "frame-src 'none'",
+    // Clickjacking: no site (including this one) may embed the app (#508).
+    // Only honoured as a response header, not in the layout's <meta> CSP.
+    "frame-ancestors 'none'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -59,6 +62,8 @@ export function middleware(request: NextRequest) {
   });
 
   response.headers.set('Content-Security-Policy', cspHeader);
+  // Legacy equivalent of frame-ancestors 'none' for browsers without CSP2 (#508).
+  response.headers.set('X-Frame-Options', 'DENY');
 
   return response;
 }
