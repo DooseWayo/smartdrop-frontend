@@ -4,6 +4,7 @@ import { Avatar, Box, Flex, Grid, HStack, Link as ChakraLink, Skeleton, Skeleton
 import NextLink from "next/link";
 
 import contributorData from "@/data/contributors.json";
+import { safeHttpUrl } from "@/lib/sanitize";
 
 function ContributorsSkeleton() {
   return (
@@ -112,7 +113,10 @@ export default function ContributorsPage() {
           <ChakraLink
             key={c.login}
             as={NextLink}
-            href={c.html_url}
+            href={
+              safeHttpUrl(c.html_url, ["github.com"]) ??
+              `https://github.com/${encodeURIComponent(c.login)}`
+            }
             target="_blank"
             rel="noreferrer"
             minW={0}
@@ -131,7 +135,7 @@ export default function ContributorsPage() {
               transition="all 0.2s ease"
               _hover={{ borderColor: "app.borderHover", boxShadow: "cardHover", transform: "translateY(-2px)" }}
             >
-              <Avatar src={c.avatar_url} name={c.login} size="md" flexShrink={0} />
+              <Avatar src={safeHttpUrl(c.avatar_url, ["avatars.githubusercontent.com"])} name={c.login} size="md" flexShrink={0} />
               <Box minW={0} flex={1}>
                 <Text fontWeight="semibold" color="app.text" isTruncated>
                   @{c.login}
