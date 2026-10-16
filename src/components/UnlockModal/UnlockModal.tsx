@@ -285,6 +285,7 @@ export default function UnlockModal() {
     <Modal
       isOpen={isUnlock}
       onClose={handleClose}
+      lockScrollAcrossViewports
       // Keep keyboard focus inside the dialog (WCAG 2.1.2 / 2.4.3), start on the
       // amount field, and hand focus back to the trigger when the dialog closes.
       trapFocus
