@@ -13,7 +13,7 @@ import {
   Spinner,
   Text,
 } from "@chakra-ui/react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getPrice, backendQueryRetry } from "@/lib/backend";
 import { QueryErrorAlert } from "@/components/QueryErrorAlert/QueryErrorAlert";
 
@@ -42,10 +42,13 @@ export default function PricesPage() {
     return () => clearTimeout(timer);
   }, [coolingDown]);
 
-  const { data, isLoading, isError, error, isFetching, refetch } = useQuery({
+  const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = useQuery({
     queryKey: ["price", submitted.assetCode, submitted.issuer],
     queryFn: () => getPrice(submitted.assetCode, submitted.issuer || undefined),
     enabled: !!submitted.assetCode,
+    // Keep showing the previous result while a new lookup loads, instead of
+    // unmounting the card for a spinner and remounting it (the flash in #567).
+    placeholderData: keepPreviousData,
     ...backendQueryRetry,
   });
 
@@ -132,7 +135,14 @@ export default function PricesPage() {
         </Flex>
       </Box>
 
-      <Box w="100%" maxW="800px">
+      <Box
+        w="100%"
+        maxW="800px"
+        aria-busy={isFetching}
+        // Dim (not replace) the current result while a new one loads (#567).
+        opacity={isPlaceholderData ? 0.6 : 1}
+        transition="opacity 0.2s ease"
+      >
         {isLoading ? (
           <Flex justify="center" py={10}>
             <Spinner color="app.accent" size="xl" thickness="3px" />
@@ -173,7 +183,14 @@ export default function PricesPage() {
                 {data.is_stale ? "Stale" : "Fresh"}
               </Badge>
             </HStack>
-            <Text fontSize="4xl" fontWeight="extrabold" color="app.accent" mb={2}>
+            <Text
+              fontSize="4xl"
+              fontWeight="extrabold"
+              color="app.accent"
+              mb={2}
+              // Fixed-width digits so a changing price doesn't jitter the layout.
+              sx={{ fontVariantNumeric: "tabular-nums" }}
+            >
               {formatUsd(data.price_usd)}
             </Text>
             <Text fontSize="sm" color="app.muted" mb={1}>
