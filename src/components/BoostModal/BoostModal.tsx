@@ -30,7 +30,7 @@ import {
     Spinner,
     Text,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type BoostStep = "idle" | "submitting" | "success" | "error";
 
@@ -46,6 +46,7 @@ export default function BoostModal() {
     const [allocation, setAllocation] = useState(currentBoost);
     const [step, setStep] = useState<BoostStep>("idle");
     const [error, setError] = useState<string | null>(null);
+    const sliderThumbRef = useRef<HTMLDivElement>(null);
 
     const selectedPoolContractId = position?.contractAddress || poolContractId;
 
@@ -134,7 +135,15 @@ export default function BoostModal() {
     };
 
     return (
-        <Modal isOpen={isBoost} onClose={handleClose}>
+        <Modal
+            isOpen={isBoost}
+            onClose={handleClose}
+            // Keep keyboard focus inside the dialog (WCAG 2.1.2 / 2.4.3), start on the
+            // allocation slider, and hand focus back to the trigger when it closes.
+            trapFocus
+            returnFocusOnClose
+            initialFocusRef={sliderThumbRef}
+        >
             <ModalOverlay backdropFilter="blur(3px)" />
             <ModalContent
                 bg="app.surface"
@@ -215,7 +224,7 @@ export default function BoostModal() {
                                     <SliderTrack bg="app.border">
                                         <SliderFilledTrack bg="app.accent" />
                                     </SliderTrack>
-                                    <SliderThumb boxSize={6} />
+                                    <SliderThumb ref={sliderThumbRef} boxSize={6} />
                                 </Slider>
                                 <Flex justify="center">
                                     <Text fontSize="2xl" fontWeight="bold" color="app.accent">

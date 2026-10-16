@@ -2,7 +2,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import Navbar from "./Navbar";
+import Navbar, { isActiveRoute } from "./Navbar";
 import { usePlatformStats } from "@/hooks/useSorobanQuery";
 
 const walletMock = vi.hoisted(() => ({
@@ -171,6 +171,34 @@ describe("Navbar active-link highlighting", () => {
     expect(home.className).toContain("font-medium");
     expect(history.className).not.toContain("font-medium");
     expect(home.className).not.toContain("font-semibold");
+  });
+});
+
+describe("isActiveRoute (#547)", () => {
+  it("matches home only on the root path", () => {
+    expect(isActiveRoute("/", "/")).toBe(true);
+    expect(isActiveRoute("/history", "/")).toBe(false);
+  });
+
+  it("matches nested routes and a trailing slash, but not lookalike prefixes", () => {
+    expect(isActiveRoute("/airdrops", "/airdrops")).toBe(true);
+    expect(isActiveRoute("/airdrops/123", "/airdrops")).toBe(true);
+    expect(isActiveRoute("/airdrops/", "/airdrops")).toBe(true);
+    expect(isActiveRoute("/airdropsx", "/airdrops")).toBe(false);
+    expect(isActiveRoute(null, "/airdrops")).toBe(false);
+  });
+});
+
+describe("Navbar active route on nested paths (#547)", () => {
+  it("highlights the section link and sets aria-current on a nested route", () => {
+    usePathnameMock.mockReturnValue("/history/abc");
+    renderNavbar();
+
+    const history = screen.getByRole("link", { name: "History" });
+    const home = screen.getByRole("link", { name: "Home" });
+    expect(history.className).toContain("font-semibold");
+    expect(history.getAttribute("aria-current")).toBe("page");
+    expect(home.getAttribute("aria-current")).toBeNull();
   });
 });
 

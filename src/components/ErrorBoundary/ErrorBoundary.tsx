@@ -1,17 +1,26 @@
 /**
  * Error Boundary component for catching React component errors.
  * Prevents the entire app from crashing if a component fails.
+ *
+ * React boundaries only see errors thrown while rendering. Errors from async
+ * work and event handlers are routed in via `useErrorBoundary()` (or, for
+ * stray promise rejections, `captureUnhandledRejections`) (#536).
  */
 
 "use client";
 
 import { UnknownError, errorLogger } from "@/lib/error-handler";
 import { Box, Button, Heading, Text, VStack } from "@chakra-ui/react";
-import React, { Component, type ReactNode } from "react";
+import React, { Component, useCallback, useState, type ReactNode } from "react";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: (error: Error, retry: () => void) => ReactNode;
+  /**
+   * Also show the fallback for unhandled promise rejections anywhere on the
+   * page. Use on the app-level boundary only (#536).
+   */
+  captureUnhandledRejections?: boolean;
 }
 
 interface ErrorBoundaryState {
@@ -28,6 +37,24 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
+
+  componentDidMount() {
+    if (this.props.captureUnhandledRejections && typeof window !== "undefined") {
+      window.addEventListener("unhandledrejection", this.handleUnhandledRejection);
+    }
+  }
+
+  componentWillUnmount() {
+    if (typeof window !== "undefined") {
+      window.removeEventListener("unhandledrejection", this.handleUnhandledRejection);
+    }
+  }
+
+  handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+    // Logging is already done by setupGlobalErrorHandlers; here we only
+    // surface the failure instead of leaving the UI silently broken.
+    this.setState({ hasError: true, error: toError(event.reason) });
+  };
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     const boundaryError = new UnknownError(
@@ -158,4 +185,25 @@ export function ErrorBoundarySection({
       {children}
     </ErrorBoundary>
   );
+}
+
+function toError(value: unknown): Error {
+  return value instanceof Error ? value : new Error(String(value));
+}
+
+/**
+ * Route errors from async code and event handlers to the nearest
+ * `ErrorBoundary`, which can't see them on its own (#536).
+ *
+ * ```tsx
+ * const { showBoundary } = useErrorBoundary();
+ * const onClick = () => claim().catch(showBoundary);
+ * ```
+ */
+export function useErrorBoundary(): { showBoundary: (error: unknown) => void } {
+  const [error, setError] = useState<Error | null>(null);
+  // Re-throwing during render is what lets the boundary catch it.
+  if (error) throw error;
+  const showBoundary = useCallback((e: unknown) => setError(toError(e)), []);
+  return { showBoundary };
 }
