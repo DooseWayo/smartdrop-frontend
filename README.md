@@ -147,6 +147,7 @@ NEXT_PUBLIC_STELLAR_NETWORK=TESTNET
 # NEXT_PUBLIC_POOL_CONTRACT_ID=C...            # pool that custodies locked positions
 # NEXT_PUBLIC_MIN_LOCK_PERIOD_SECONDS=604800   # min lock before unlock (default 7 days)
 # NEXT_PUBLIC_BACKEND_API_URL=http://localhost:4000/api/v1   # smartdrop-backend, for /prices /airdrops /webhooks /alerts
+# API_ALLOWED_ORIGINS=https://partner.example   # extra origins allowed to call /api/* cross-origin (server-only; same-origin always allowed, #559)
 ```
 
 Then, pick one:
