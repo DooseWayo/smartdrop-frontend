@@ -25,4 +25,10 @@ describe('middleware CSP', () => {
     expect(csp).toContain("script-src 'self'");
     expect(csp).toContain("'unsafe-eval'");
   });
+
+  it("forbids framing via frame-ancestors 'none' and X-Frame-Options (#508)", () => {
+    const response = middleware(new NextRequest('https://example.com/'));
+    expect(response.headers.get('Content-Security-Policy')).toContain("frame-ancestors 'none'");
+    expect(response.headers.get('X-Frame-Options')).toBe('DENY');
+  });
 });

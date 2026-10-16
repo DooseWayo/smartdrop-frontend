@@ -177,6 +177,8 @@ This codebase is **not** presented as audited production infrastructure. Pool ec
 - Start on **test networks** and conservative parameters
 - Treat privileged functions (`pause`, parameter updates, rescues) as governance-sensitive
 
+How users are authenticated (wallet signatures per action, no sessions), and the rules any future session-based auth must follow, are in [docs/auth-model.md](docs/auth-model.md).
+
 ---
 
 ## Roadmap

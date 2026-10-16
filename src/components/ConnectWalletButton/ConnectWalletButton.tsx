@@ -75,7 +75,15 @@ export default function ConnectWalletButton({
           color="#fff"
           fontSize="xs"
         >
+          {/* A real button so the tooltip also opens on keyboard focus, and
+              the full address is in the accessible name, not hover-only (#571). */}
           <Text
+            as="button"
+            type="button"
+            aria-label={copied ? "Address copied" : `Copy wallet address ${publicKey}`}
+            bg="transparent"
+            border="none"
+            p={0}
             fontSize="sm"
             fontFamily="mono"
             color={ACCENT}
