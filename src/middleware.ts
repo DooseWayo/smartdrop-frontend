@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { applyApiCorsHeaders, guardApiRequest } from '@/lib/api-origin';
 
 function generateNonce(): string {
   const bytes = new Uint8Array(16);
@@ -51,6 +52,10 @@ function buildCsp(nonce: string): string {
 // run there, which is why this went unnoticed). Removed rather than
 // completed, since nothing in the app actually depends on it.
 export function middleware(request: NextRequest) {
+  // #559: origin allow-list + JSON-only writes for /api/* (no-op elsewhere).
+  const apiResponse = guardApiRequest(request);
+  if (apiResponse) return apiResponse;
+
   const nonce = generateNonce();
   const cspHeader = buildCsp(nonce);
 
