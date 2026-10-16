@@ -4,8 +4,10 @@ import ConnectWalletButton from "@/components/ConnectWalletButton/ConnectWalletB
 import Footer from "@/components/Footer/Footer";
 import Navbar from "@/components/Navbar/Navbar";
 import NetworkMismatchBanner from "@/components/NetworkMismatchBanner/NetworkMismatchBanner";
+import OfflineBanner from "@/components/OfflineBanner/OfflineBanner";
 import RefetchIndicator from "@/components/RefetchIndicator/RefetchIndicator";
 import RpcUnreachableBanner from "@/components/RpcUnreachableBanner/RpcUnreachableBanner";
+import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar/ServiceWorkerRegistrar";
 import ContextProvider from "@/context";
 import {
   OwnConnectButtonProvider,
@@ -49,6 +51,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
     >
       <RefetchIndicator />
       <Navbar />
+      <OfflineBanner />
       <RpcUnreachableBanner />
       <NetworkMismatchBanner />
       <Box as="main" flex={1}>
@@ -63,6 +66,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
 export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <ContextProvider>
+      <ServiceWorkerRegistrar basePath={process.env.NEXT_PUBLIC_BASE_PATH ?? ""} />
       {/* OwnConnectButtonProvider must be inside ContextProvider so the
           wallet context is available to children, but it wraps LayoutWrapper
           so pages can signal upward before the floating button is rendered. */}
