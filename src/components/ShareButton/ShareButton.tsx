@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { buildShareText, buildShareUrl } from "@/lib/share-url";
 
 function twitterIntentUrl(url: string, text: string): string {
   const params = new URLSearchParams({ url, text });
@@ -18,7 +19,9 @@ function twitterIntentUrl(url: string, text: string): string {
 
 /**
  * Share menu for a pool or leaderboard entry (#264): copy the current page
- * link, or open a prefilled X/Twitter share intent in a new tab.
+ * link, or open a prefilled X/Twitter share intent in a new tab. Links are
+ * tagged with the configured Stellar network so they open on the right one
+ * (#520).
  */
 export default function ShareButton({
   url,
@@ -30,10 +33,11 @@ export default function ShareButton({
   size?: "2xs" | "xs" | "sm";
 }) {
   const [copied, setCopied] = useState(false);
+  const networkUrl = buildShareUrl(url);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(networkUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -42,7 +46,7 @@ export default function ShareButton({
   };
 
   const handleTweet = () => {
-    window.open(twitterIntentUrl(url, shareText), "_blank", "noopener,noreferrer");
+    window.open(twitterIntentUrl(networkUrl, buildShareText(shareText)), "_blank", "noopener,noreferrer");
   };
 
   return (
