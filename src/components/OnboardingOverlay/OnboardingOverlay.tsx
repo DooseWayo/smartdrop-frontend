@@ -32,13 +32,30 @@ const STEPS = [
     icon: "🔒",
   },
   {
+    title: "Boost Your Farm",
+    description:
+      "Allocate a share of your credits as boost to multiply farming rewards on your positions.",
+    icon: "🚀",
+  },
+  {
     title: "Claim Airdrops",
     description:
       "Your earned credits can be redeemed for exclusive ecosystem airdrops and rewards.",
     icon: "🎁",
   },
+  {
+    title: "Track Everything",
+    description:
+      "Use the leaderboard, history, and alerts pages to follow rankings, past transactions, and notifications.",
+    icon: "📊",
+  },
 ];
 
+/**
+ * Guided tour for first-time users (#592). Steps can be advanced with Next,
+ * the arrow keys, or dismissed with Skip/Esc. Re-launchable via
+ * `localStorage.removeItem("smartdrop_onboarded")` or the footer tour link.
+ */
 export default function OnboardingOverlay() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -55,6 +72,7 @@ export default function OnboardingOverlay() {
   const handleClose = () => {
     localStorage.setItem("smartdrop_onboarded", "true");
     setIsOpen(false);
+    setCurrentStep(0);
   };
 
   const nextStep = () => {
@@ -64,6 +82,29 @@ export default function OnboardingOverlay() {
       handleClose();
     }
   };
+
+  const prevStep = () => {
+    setCurrentStep((s) => Math.max(0, s - 1));
+  };
+
+  // Keyboard tour controls (#592): Left/Right move between steps, Esc skips.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        nextStep();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        prevStep();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, currentStep]);
 
   if (!isOpen) return null;
 
@@ -156,6 +197,16 @@ export default function OnboardingOverlay() {
               <Button variant="ghost" onClick={handleClose} color="app.muted">
                 Skip
               </Button>
+              {currentStep > 0 && (
+                <Button
+                  variant="ghost"
+                  onClick={prevStep}
+                  color="app.text"
+                  borderRadius="full"
+                >
+                  Back
+                </Button>
+              )}
               {currentStep === STEPS.length - 1 ? (
                 isConnected ? (
                   <Button
