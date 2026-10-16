@@ -5,11 +5,19 @@ const config: ThemeConfig = {
   useSystemColorMode: true,
 };
 
+// #555: next/font self-hosts and preloads Inter under a generated family name
+// (e.g. "__Inter_a1b2c3") exposed via the --font-inter variable set on <html>
+// in layout.tsx. Referencing the literal 'Inter' here bypassed that preloaded
+// face entirely, so Chakra text fell back to a locally installed Inter or the
+// system font and swapped late. 'Inter' stays as a fallback for contexts
+// rendered outside the layout (e.g. tests/Storybook).
+export const FONT_STACK = `var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+
 const theme = extendTheme({
   config,
   fonts: {
-    heading: `'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`,
-    body: `'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`,
+    heading: FONT_STACK,
+    body: FONT_STACK,
   },
   semanticTokens: {
     colors: {
