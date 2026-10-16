@@ -259,4 +259,30 @@ describe('UnlockModal', () => {
       expect(btn).toHaveProperty('disabled', false);
     });
   });
+
+  describe('Escape key (#516)', () => {
+    function mockStore(close: () => void) {
+      vi.mocked(useFarmStore).mockImplementation((selector: (state: FarmStore) => unknown) =>
+        selector({ activeModal: 'unlock', selectedPosition: mockPosition, close } as unknown as FarmStore),
+      );
+    }
+
+    it('closes the modal when Escape is pressed', () => {
+      const close = vi.fn();
+      mockStore(close);
+      renderWithProviders(createElement(UnlockModal));
+      fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape', code: 'Escape' });
+      expect(close).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes on Escape while focus is in the amount input', () => {
+      const close = vi.fn();
+      mockStore(close);
+      renderWithProviders(createElement(UnlockModal));
+      const input = screen.getByRole('dialog').querySelector('input');
+      expect(input).toBeTruthy();
+      fireEvent.keyDown(input!, { key: 'Escape', code: 'Escape' });
+      expect(close).toHaveBeenCalledTimes(1);
+    });
+  });
 });
