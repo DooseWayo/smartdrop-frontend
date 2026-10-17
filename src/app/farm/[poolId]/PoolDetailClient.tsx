@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import NextLink from "next/link";
+import TransactionConfirmModal from "@/components/TransactionConfirmModal/TransactionConfirmModal";
 import {
   Alert,
   AlertIcon,
@@ -209,6 +210,11 @@ export default function PoolDetailClient({ poolId }: { poolId: string }) {
   const displayAmount = parseFloat(rawAmount);
   const amountValid = Number.isFinite(displayAmount) && displayAmount > 0;
   const isPending = isDepositPending(flow.step);
+  const lockPeriodLabel = pool
+    ? pool.minLockPeriod >= 86400
+      ? `${Math.floor(pool.minLockPeriod / 86400)} day${Math.floor(pool.minLockPeriod / 86400) > 1 ? "s" : ""}`
+      : `${Math.floor(pool.minLockPeriod / 3600)} hour${Math.floor(pool.minLockPeriod / 3600) > 1 ? "s" : ""}`
+    : "";
 
   if (error) {
     return (
@@ -507,50 +513,6 @@ export default function PoolDetailClient({ poolId }: { poolId: string }) {
                 )}
               </Button>
 
-              {showConfirmation && (
-                <Alert status="warning" borderRadius="2xl" bg="app.warningBg" color="app.warningFg" fontSize="sm" p={4}>
-                  <Flex direction="column" gap={3} w="full">
-                    <Flex align="flex-start" gap={2}>
-                      <AlertIcon color="app.warningFg" mt={0.5} />
-                      <Box flex="1">
-                        <Text fontWeight="semibold" mb={1}>
-                          Confirm Lock Transaction
-                        </Text>
-                        <Text fontSize="xs">
-                          You are about to lock {displayAmount} {pool?.asset.code ?? ""} for a minimum period of{" "}
-                          {pool
-                            ? pool.minLockPeriod >= 86400
-                              ? `${Math.floor(pool.minLockPeriod / 86400)} day${Math.floor(pool.minLockPeriod / 86400) > 1 ? "s" : ""}`
-                              : `${Math.floor(pool.minLockPeriod / 3600)} hour${Math.floor(pool.minLockPeriod / 3600) > 1 ? "s" : ""}`
-                            : ""}
-                          . This action cannot be reversed until the lock period expires.
-                        </Text>
-                      </Box>
-                    </Flex>
-                    <Flex gap={2} justify="flex-end">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleCancelLock}
-                        isDisabled={isPending}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size="sm"
-                        bg="app.accent"
-                        color="app.onAccent"
-                        _hover={{ opacity: 0.9 }}
-                        onClick={handleConfirmLock}
-                        isDisabled={isPending}
-                      >
-                        Confirm Lock
-                      </Button>
-                    </Flex>
-                  </Flex>
-                </Alert>
-              )}
-
               {flow.step === "error" && (
                 <Button variant="ghost" size="sm" color="app.muted" onClick={flow.reset}>
                   Try again
@@ -559,6 +521,20 @@ export default function PoolDetailClient({ poolId }: { poolId: string }) {
             </Flex>
           </ModalBody>
         </ModalContent>
+        <TransactionConfirmModal
+          isOpen={showConfirmation}
+          onClose={handleCancelLock}
+          onConfirm={handleConfirmLock}
+          title="Confirm Lock"
+          description="Review the details below. You'll be asked to sign this transaction in Freighter."
+          details={[
+            { label: "Pool", value: pool?.asset.code ?? poolId },
+            { label: "Lock amount", value: `${displayAmount} ${pool?.asset.code ?? ""}` },
+            { label: "Minimum lock period", value: lockPeriodLabel },
+          ]}
+          warning={`This action cannot be reversed until the ${lockPeriodLabel} lock period expires.`}
+          confirmLabel="Confirm Lock"
+        />
       </Modal>
     </Flex>
   );

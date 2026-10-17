@@ -4,6 +4,7 @@ import {
     poolContractId,
     stellarNetwork,
 } from "@/config";
+import TransactionConfirmModal from "@/components/TransactionConfirmModal/TransactionConfirmModal";
 import { useErrorHandler } from "@/context/ErrorContext";
 import { useStellarWallet } from "@/context/StellarWalletContext";
 import { useCountdown } from "@/hooks/useCountdown";
@@ -72,6 +73,7 @@ export default function UnlockModal() {
   const [step, setStep] = useState<UnlockStep>("idle");
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const amountInputRef = useRef<HTMLInputElement>(null);
   const selectedPoolContractId = position?.contractAddress || poolContractId;
 
@@ -101,7 +103,7 @@ export default function UnlockModal() {
       setStep("idle");
       setError(null);
       setTxHash(null);
-
+      setIsConfirmOpen(false);
     }
   }, [isUnlock, position]);
 
@@ -126,6 +128,11 @@ export default function UnlockModal() {
     numericAmount,
     numericDailyRate,
   );
+
+  const handleConfirmUnlock = () => {
+    setIsConfirmOpen(false);
+    void handleUnlock();
+  };
 
   const handleUnlock = async () => {
     if (!publicKey || !walletApi) {
@@ -549,7 +556,7 @@ export default function UnlockModal() {
                 color="app.onAccent"
                 _hover={{ opacity: 0.9 }}
                 isDisabled={!canUnlock || !amountValid || isProcessing || isNetworkMismatch}
-                onClick={() => void handleUnlock()}
+                onClick={() => setIsConfirmOpen(true)}
                 w="full"
               >
                 {isProcessing ? (
@@ -565,6 +572,29 @@ export default function UnlockModal() {
           )}
         </ModalBody>
       </ModalContent>
+      <TransactionConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmUnlock}
+        title="Confirm Unlock"
+        description="Review the details below. You'll be asked to sign this transaction in Freighter."
+        details={[
+          { label: "Pool", value: position.name },
+          { label: "Unlock amount", value: `${numericAmount} ${position.symbol}` },
+          { label: "Remaining stake", value: `${remainingStake.toFixed(4)} ${position.symbol}` },
+          { label: "New daily rate", value: `${newDailyRate.toFixed(6)} credits/day` },
+          {
+            label: "Estimated Soroban fee",
+            value: feePreview.data ? `${feePreview.data.feePreview} stroops` : "Unavailable",
+          },
+        ]}
+        warning={
+          numericAmount < position.lockedAmount
+            ? "Unlocked assets stop earning credits once the transaction confirms."
+            : "This closes your entire position. Unlocked assets stop earning credits once the transaction confirms."
+        }
+        confirmLabel="Confirm Unlock"
+      />
     </Modal>
   );
 }
