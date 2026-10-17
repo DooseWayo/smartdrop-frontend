@@ -5,6 +5,7 @@ import ConnectWalletButton from "@/components/ConnectWalletButton/ConnectWalletB
 import UnlockModal from "@/components/UnlockModal/UnlockModal";
 import BoostModal from "@/components/BoostModal/BoostModal";
 import Breadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
+import TransactionConfirmModal from "@/components/TransactionConfirmModal/TransactionConfirmModal";
 import { EarningRow, MetricColumn } from "@/app/farm/EarningRow";
 import { FarmPoolRow } from "@/app/farm/FarmPoolRow";
 import {
@@ -95,6 +96,7 @@ function DepositModal({
 }) {
   const { publicKey, walletApi, isConnected, isNetworkMismatch } = useStellarWallet();
   const [amount, setAmount] = useState("");
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const selectedContractAddress = farm?.contractAddress || farm?.id || "";
   const balanceQuery = useStellarBalance(publicKey ?? undefined);
@@ -156,6 +158,7 @@ function DepositModal({
   useEffect(() => {
     if (isOpen) {
       setAmount("");
+      setIsConfirmOpen(false);
       flow.reset();
     }
     // Reset only when the modal opens or the selected pool changes.
@@ -176,6 +179,11 @@ function DepositModal({
   const handleSubmit = async () => {
     if (!farm || !publicKey || !amountValid) return;
     await flow.execute(numericAmount);
+  };
+
+  const handleConfirmDeposit = () => {
+    setIsConfirmOpen(false);
+    void handleSubmit();
   };
 
   // Auto-close the modal after a successful deposit (#416).
@@ -361,7 +369,7 @@ function DepositModal({
               color="app.onAccent"
               _hover={{ opacity: isPending ? 1 : 0.9 }}
               isDisabled={!canSubmit}
-              onClick={() => void handleSubmit()}
+              onClick={() => setIsConfirmOpen(true)}
               w="full"
             >
               {isPending ? (
@@ -389,6 +397,24 @@ function DepositModal({
           </Flex>
         </ModalBody>
       </ModalContent>
+      <TransactionConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmDeposit}
+        title="Confirm Deposit"
+        description="Review the details below. You'll be asked to sign this transaction in Freighter."
+        details={[
+          { label: "Pool", value: farm.name },
+          { label: "Deposit amount", value: `${trimmedAmount} ${farm.symbol}` },
+          { label: "Minimum lock period", value: lockPeriod },
+          {
+            label: "Estimated Soroban fee",
+            value: feePreview.data ? `${feePreview.data.feePreview} stroops` : "Unavailable",
+          },
+        ]}
+        warning={`Deposited funds stay locked for at least ${lockPeriod} and can't be withdrawn before then.`}
+        confirmLabel="Confirm Deposit"
+      />
     </Modal>
   );
 }
