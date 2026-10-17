@@ -219,6 +219,7 @@ describe('UnlockModal', () => {
 
     const button = screen.getByRole('button', { name: /Unlock with Freighter/i });
     fireEvent.click(button);
+    fireEvent.click(await screen.findByRole('button', { name: /Confirm Unlock/i }));
 
     // Wait for the modal to show success state — the Badge text
     await waitFor(() => {
@@ -248,6 +249,7 @@ describe('UnlockModal', () => {
 
     const button = screen.getByRole('button', { name: /Unlock with Freighter/i });
     fireEvent.click(button);
+    fireEvent.click(await screen.findByRole('button', { name: /Confirm Unlock/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Insufficient balance/i)).toBeTruthy();
@@ -258,6 +260,23 @@ describe('UnlockModal', () => {
       const btn = screen.getByRole('button', { name: /Unlock with Freighter/i });
       expect(btn).toHaveProperty('disabled', false);
     });
+  });
+
+  it('requires confirmation before submitting the unlock', async () => {
+    renderWithProviders(createElement(UnlockModal));
+    fireEvent.change(screen.getByPlaceholderText('Amount'), { target: { value: '50' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Unlock with Freighter/i }));
+
+    expect(await screen.findByText('Confirm Unlock', { selector: 'header' })).toBeTruthy();
+    expect(screen.getByText('50 XLM')).toBeTruthy();
+    expect(unlockAssets).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: /^Cancel$/i }));
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /Confirm Unlock/i })).toBeNull();
+    });
+    expect(unlockAssets).not.toHaveBeenCalled();
   });
 
   describe('Escape key (#516)', () => {
