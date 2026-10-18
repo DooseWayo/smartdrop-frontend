@@ -6,10 +6,10 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "next dev",
-    "dev:stack": "bash scripts/dev-stack.sh",
-    "build": "node scripts/check-css.mjs && next build",
-    "start": "next start",
+    "dev": "node init && next dev",
+    "dev:stack": "node init && bash scripts/dev-stack.sh",
+    "build": "node init && node scripts/check-css.mjs && next build",
+    "start": "node init && next start",
     "typecheck": "tsc --noEmit",
     "lint": "next lint",
     "lint:css": "node scripts/check-css.mjs",
@@ -19,7 +19,7 @@
     "test:coverage": "vitest run --coverage --coverage.include src/lib/soroban.ts",
     "test:visual": "playwright test --config e2e/playwright.config.ts e2e/visual-regression.spec.ts",
     "test:visual:update": "playwright test --config e2e/playwright.config.ts e2e/visual-regression.spec.ts --update-snapshots",
-    "build:analyze": "ANALYZE=true next build",
+    "build:analyze": "node init && ANALYZE=true next build",
     "bundle:budget": "node scripts/check-bundle-budget.mjs",
     "lighthouse": "lhci autorun",
     "playwright": "playwright test --config e2e/playwright.config.ts",
